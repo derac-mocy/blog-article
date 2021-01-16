@@ -2,6 +2,16 @@
 
 @section("content")
     <div class="container">
+        @if($errors->any())
+        <div class="alert alert-warning">
+            <ol>
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ol>
+        </div>
+        @endif
+
         @if(session('info'))
         <div class="alert alert-info">
             {{ session('info') }}
@@ -16,6 +26,7 @@
                 <h5 class="card-title">{{ $article->title }}</h5>
                 
                 <div class="card-subtitle mb-2 text-muted small">
+                    By {{ $article->user->name }},
                     {{ $article->created_at->diffForHumans() }}
                 </div>
 
