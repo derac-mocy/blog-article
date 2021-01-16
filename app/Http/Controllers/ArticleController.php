@@ -2,11 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
 use App\Models\Article;
+use App\Models\Category;
 
 class ArticleController extends Controller
 {
+    public function __construct() {
+        $this->middleware('auth')->except(['index', 'show']);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -26,10 +32,7 @@ class ArticleController extends Controller
      */
     public function create()
     {
-            $data = [
-                [ "id" => 1, "name" => "News" ],
-                [ "id" => 2, "name" => "Tech" ],
-            ];
+            $data = Category::all();
 
             return view('articles.add', ['categories' => $data]);
     }
@@ -56,6 +59,7 @@ class ArticleController extends Controller
         $article->title = request()->title;
         $article->body = request()->body;
         $article->category_id = request()->category_id;
+        $article->user_id = auth()->user()->id;
         $article->save();
 
         return redirect('/articles');
@@ -106,8 +110,12 @@ class ArticleController extends Controller
     public function destroy($id)
     {
         $article = Article::find($id);
-        $article->delete();
         
-        return redirect('/articles')->with('info', 'Article deleted');
+        if( Gate::allows('article-delete', $article) ) {
+            $article->delete();
+            return redirect('/articles')->with('info', 'Article deleted');
+        } else {
+            return redirect('/articles')->with('error', 'Unauthorize');
+        }
     }
 }
